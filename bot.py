@@ -1,64 +1,101 @@
-import os
-from binance.client import Client
+import telegram
 from telegram.ext import Updater, CommandHandler
+from binance.client import Client
 
-binance_api_key = os.environ.get('BINANCE_API_KEY')
-binance_api_secret = os.environ.get('BINANCE_API_SECRET')
+# กำหนด Token ของ Telegram bot ที่ได้รับจาก BotFather
+TELEGRAM_BOT_TOKEN = '6192574289:AAECF5_PZ9cMNswsLWsDVNLrP6uCofRObjg'
 
-client = Client(binance_api_key=binance_api_key, binance_api_secret=binance_api_secret)
+# กำหนด API Key และ Secret Key ของ Binance
+BINANCE_API_KEY = 'wh2YyosKLY4YJLrSbn1oujeEGsD7SZ8vM7CqEBPuVpdYmtBulFzLqSVM7CeJzmBa'
+BINANCE_SECRET_KEY = '9s4LGdWGZKmWns33N9wMcYfJHGwRPbLswerbwWRDLsZWLfhjFeGUkgeFMZcxIkCA'
 
-# สร้างฟังก์ชันเพื่อดึงข้อมูล balance และ available balance
-def get_balance(update, context):
-    balance = client.get_asset_balance(asset='USDT')
-    avail_balance = client.get_asset_balance(asset='USDT')['free']
-    update.message.reply_text(f"Balance: {balance['free']} USDT\nAvailable Balance: {avail_balance} USDT")
+# สร้าง client สำหรับการเชื่อมต่อกับ Binance API
+client = Client(api_key=BINANCE_API_KEY, api_secret=BINANCE_SECRET_KEY)
 
-# สร้างฟังก์ชันเพื่อดึงข้อมูล capital
-def get_capital(update, context):
-    account = client.futures_account()
-    balance = account['totalWalletBalance']
-    update.message.reply_text(f"Total capital: {balance} USDT")
+# กำหนด function สำหรับคำสั่ง /start
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="สวัสดีค่ะ ยินดีต้อนรับสู่บอทของเรา")
 
-# สร้างฟังก์ชันเพื่อดึงข้อมูล floating PnL
-def get_floating_pnl(update, context):
-    positions = client.futures_position_information()
-    floating_pnl = 0
-    for position in positions:
-        if position['symbol'] == 'BTCUSDT':
-            floating_pnl += float(position['unRealizedProfit'])
-    update.message.reply_text(f"Floating PnL: {floating_pnl} USDT")
+# กำหนด function สำหรับคำสั่ง /capital
+def capital(update, context):
+    # ดึงข้อมูล capital จาก Binance API
+    capital = client.get_account()["totalAssetOfBtc"]
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f"Capital: {capital} BTC")
 
-# สร้างฟังก์ชันเพื่อดึงข้อมูล drawdown percent
-def get_drawdown(update, context):
-    account = client.futures_account()
-    initial_balance = float(account['totalInitialMargin'])
-    current_balance = float(account['totalWalletBalance'])
-    drawdown = (initial_balance - current_balance) / initial_balance * 100
-    update.message.reply_text(f"Drawdown: {drawdown:.2f}%")
+# กำหนด function สำหรับคำสั่ง /balance
+def balance(update, context):
+    # ดึงข้อมูล balance จาก Binance API
+    balance = client.get_account()["balances"]
+    balance_text = "\n".join([f"{asset['asset']}: {asset['free']}" for asset in balance])
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f"Balance:\n{balance_text}")
 
-# สร้างฟังก์ชันเพื่อดึงข้อมูล total profit
-def get_total_profit(update, context):
-    account = client.futures_account()
-    total_profit = float(account['totalUnrealizedProfit']) + float(account['totalMarginBalance']) - float(account['totalWalletBalance'])
-    update.message.reply_text(f"Total Profit: {total_profit} USDT")
+# กำหนด function สำหรับคำสั่ง /availbalance
+def avail_balance(update, context):
+    # ดึงข้อมูล available balance จาก Binance API
+    avail_balance = client.get_account()["balances"]
+    avail_balance_text = "\n".join([f"{asset['asset']}: {asset['free']}" for asset in avail_balance if float(asset['free']) > 0])
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f"Available Balance:\n{avail_balance_text}")
 
-# สร้างฟังก์ชันเพื่อดึงข้อมูลของ future trade ทั้งหมด
-def get_future_trades(update, context):
-    trades = client.futures_account_trades()
-    for trade in trades:
-        update.message.reply_text(f"{trade['symbol']}, {trade['time']}, {trade['side']}, {trade['price']}, {trade['qty']}")
+# กำหนด function สำหรับคำสั่ง /floatingpnl
+def floating_pnl(update, context):
+    # ดึงข้อมูล floating PNL จาก Binance API
+    floating_pnl = client.futures_account()["totalUnrealizedProfit"]
+    context.bot.send_message(chat_id=update.effective_chat.id, text=f"Floating PNL: {floating_pnl}")
 
-# สร้าง Telegram bot และเชื่อมต่อกับฟังก์ชัน
-updater = Updater(token='YOUR_TELEGRAM_BOT_TOKEN', use_context=True)
-dispatcher = updater.dispatcher
+# กำหนด function สำหรับคำสั่ง /drawdownpercent
+def drawdown_percent(update, context):
+    # คำนวณ drawdown percent จาก Binance API
+    # โค้ดคำนวณได้ตามความต้องการ
 
-dispatcher.add_handler(CommandHandler('balance', get_balance))
-dispatcher.add_handler(CommandHandler('capital', get_capital))
-dispatcher.add_handler(CommandHandler('floating_pnl', get_floating_pnl))
-dispatcher.add_handler(CommandHandler('drawdown', get_drawdown))
-dispatcher.add_handler(CommandHandler('total_profit', get_total_profit))
-dispatcher.add_handler(CommandHandler('future_trades', get_future_trades))
+# กำหนด function สำหรับคำสั่ง /totalprofit
+def total_profit(update, context):
+    # คำนวณ total profit จาก Binance API
+    # โค้ดคำนวณได้ตามความต้องการ
 
-# เริ่มต้นการทำงานของ Telegram bot
+# กำหนด function สำหรับคำสั่ง /help
+def help(update, context):
+    help_text = """
+    สวัสดีค่ะ นี่คือคำสั่งที่สามารถใช้ได้กับบอทของเรา:
+    /start - เริ่มต้นการใช้งาน
+    /capital - แสดงข้อมูล capital
+    /balance - แสดงข้อมูล balance
+    /availbalance - แสดงข้อมูล available balance
+    /floatingpnl - แสดงข้อมูล floating PNL
+    /drawdownpercent - แสดงข้อมูล drawdown percent
+    /totalprofit - แสดงข้อมูล total profit
+    /help - แสดงคำสั่งทั้งหมดที่สามารถใช้ได้
+    """
+    context.bot.send_message(chat_id=update.effective_chat.id, text=help_text)
+
+# กำหนด function สำหรับคำสั่งไม่รู้จัก
+def unknown(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="ขออภัยค่ะ ฉันไม่เข้าใจคำสั่งนี้")
+
+# กำหนด Token ของ Telegram bot และสร้าง updater
+updater = Updater(token=TELEGRAM_BOT_TOKEN, use_context=True)
+
+# กำหนดคำสั่งให้กับ handler
+start_handler = CommandHandler('start', start)
+capital_handler = CommandHandler('capital', capital)
+balance_handler = CommandHandler('balance', balance)
+avail_balance_handler = CommandHandler('availbalance', avail_balance)
+floating_pnl_handler = CommandHandler('floatingpnl', floating_pnl)
+drawdown_percent_handler = CommandHandler('drawdownpercent', drawdown_percent)
+total_profit_handler = CommandHandler('totalprofit', total_profit)
+help_handler = CommandHandler('help', help)
+unknown_handler = MessageHandler(Filters.command, unknown)
+
+# เพิ่ม handler เข้ากับ updater
+updater.dispatcher.add_handler(start_handler)
+updater.dispatcher.add_handler(capital_handler)
+updater.dispatcher.add_handler(balance_handler)
+updater.dispatcher.add_handler(avail_balance_handler)
+updater.dispatcher.add_handler(floating_pnl_handler)
+updater.dispatcher.add_handler(drawdown_percent_handler)
+updater.dispatcher.add_handler(total_profit_handler)
+updater.dispatcher.add_handler(help_handler)
+updater.dispatcher.add_handler(unknown_handler)
+
+# เริ่มการทำงานของบอท
 updater.start_polling()
 updater.idle()
