@@ -4,11 +4,12 @@ import time
 import os
 
 # ตั้งค่า Token ของ Bot ที่ได้รับจาก BotFather
-token = os.environ['TELEGRAM_BOT_TOKEN']
+token = os.environ['6192574289:AAECF5_PZ9cMNswsLWsDVNLrP6uCofRObjg']
 
 # ตั้งค่า API Key และ Secret Key ของ Binance
-api_key = os.environ['BINANCE_API_KEY']
-api_secret = os.environ['BINANCE_API_SECRET']
+api_key = os.environ['wh2YyosKLY4YJLrSbn1oujeEGsD7SZ8vM7CqEBPuVpdYmtBulFzLqSVM7CeJzmBa']
+api_secret = os.environ['6192574289:AAECF5_PZ9cMNswsLWsDVNLrP6uCofRObjg']
+
 
 # สร้าง Client สำหรับเชื่อมต่อกับ Binance
 client = Client(api_key, api_secret)
