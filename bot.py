@@ -5,7 +5,7 @@ from telegram.ext import Updater, CommandHandler
 binance_api_key = os.environ.get('BINANCE_API_KEY')
 binance_api_secret = os.environ.get('BINANCE_API_SECRET')
 
-client = Client(binance_api_key, binance_api_secret)
+client = Client(binance_api_key=binance_api_key, binance_api_secret=binance_api_secret)
 
 # สร้างฟังก์ชันเพื่อดึงข้อมูล balance และ available balance
 def get_balance(update, context):
