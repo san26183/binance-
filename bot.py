@@ -59,8 +59,8 @@ def check_and_send_updates(chat_id, pair):
 
 # รันโปรแกรม
 if __name__ == '__main__':
-    chat_id = "YOUR_TELEGRAM_CHAT_ID"
-    pair = "BTCUSDT"
+    chat_id = "@killerxyz"
+    pair = "APEUSDT"
     while True:
         check_and_send_updates(chat_id, pair)
         time.sleep(60) # ตั้งค่าเวลาในการเช็คและส่งข้อมูลใหม่ทุก ๆ 1 นาที
