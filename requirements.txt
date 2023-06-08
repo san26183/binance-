@@ -1,3 +1,2 @@
-python-binance
-
-python-telegram-bot
+pip install python-binance
+pip install python-telegram-bot
