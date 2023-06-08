@@ -1,4 +1,2 @@
-python-binance
-python-telegram-bot
-
-
+python-binance==0.7.11
+python-telegram-bot==13.7
